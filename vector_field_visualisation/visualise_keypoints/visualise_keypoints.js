@@ -85,24 +85,39 @@ function draw() {
           } else {
             distances[skeleton_index] = 1/(dist);
           }
-          //angle += skeleton_angles[key] * 1/(dist * 0.6); // + power_value * 0.001;
           flag = true; // default
         }
+        print('angles = ', angles);
+        print('distances = ', distances);
+        var dist_sum = distances.reduce((partialSum, a) => partialSum + a, 0);
+        var movement_distances_values = Object.keys(movement_distances).map(function(key){
+              return movement_distances[key];
+          });
+        var movement_sum = movement_distances_values.reduce((partialSum, a) => partialSum + a, 0);
+        print('dist_sum = ', dist_sum);
         var angles_list = [];
         for (let i=0; i<angles.length; i++) {
           let dist_coef = 0.8;
           let amplitude_coef = 0.2;
-          // only distance as a weight
-          //angles_list[i] = angles[i] * (distances[i]/distances.reduce((partialSum, a) => partialSum + a, 0));
-          // END - only distance as a weight
+          // dist handle NaN
+          let val_for_angles_list = angles[i] * (distances[i]/dist_sum);
+          if (isNaN(val_for_angles_list)) {
+            val_for_angles_list = 0;
+          }
+          // movement handle NaN
+          let ampl_val_for_angles_list = angles[i] * (movement_distances_values[i]/movement_sum);
+          if (isNaN(ampl_val_for_angles_list)) {
+            ampl_val_for_angles_list = 0;
+          }
+        // only distance as a weight
+          //angles_list[i] = val_for_angles_list;
+        // END - only distance as a weight
           
-          // distance & amplitude as a weight
-          var movement_distances_values = Object.keys(movement_distances).map(function(key){
-              return movement_distances[key];
-          });
-          angles_list[i] = angles[i] * (((distances[i]/distances.reduce((partialSum, a) => partialSum + a, 0))*dist_coef + (movement_distances_values[i]/movement_distances_values.reduce((partialSum, a) => partialSum + a, 0))*amplitude_coef));
-          // END - distance & amplitude as a weight
+        // distance & amplitude as a weight
+          angles_list[i] = val_for_angles_list*dist_coef + ampl_val_for_angles_list*amplitude_coef;
+        // END - distance & amplitude as a weight
         }
+        print('angles_list = ', angles_list);
         angle = angles_list.reduce((partialSum, a) => partialSum + a, 0);
         print('angle = ', angle);
       }
