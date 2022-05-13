@@ -77,8 +77,8 @@ function draw() {
           let key_y = parseInt(key.split(",")[1]);
           let dist = getDistance(key_x, key_y, x, y);
           let skeleton_index = skeleton_keypoints_numbers[key];
-          let power_value = movement_distances[skeleton_index];
-          
+          //let power_value = movement_distances[skeleton_index];
+          //power_value[skeleton_index]
           angles[skeleton_index] = skeleton_angles[key];
           if (dist == 0) {
             distances[skeleton_index] = 0;
@@ -90,7 +90,18 @@ function draw() {
         }
         var angles_list = [];
         for (let i=0; i<angles.length; i++) {
-          angles_list[i] = angles[i] * (distances[i]/distances.reduce((partialSum, a) => partialSum + a, 0));
+          let dist_coef = 0.8;
+          let amplitude_coef = 0.2;
+          // only distance as a weight
+          //angles_list[i] = angles[i] * (distances[i]/distances.reduce((partialSum, a) => partialSum + a, 0));
+          // END - only distance as a weight
+          
+          // distance & amplitude as a weight
+          var movement_distances_values = Object.keys(movement_distances).map(function(key){
+              return movement_distances[key];
+          });
+          angles_list[i] = angles[i] * (((distances[i]/distances.reduce((partialSum, a) => partialSum + a, 0))*dist_coef + (movement_distances_values[i]/movement_distances_values.reduce((partialSum, a) => partialSum + a, 0))*amplitude_coef));
+          // END - distance & amplitude as a weight
         }
         angle = angles_list.reduce((partialSum, a) => partialSum + a, 0);
         print('angle = ', angle);
