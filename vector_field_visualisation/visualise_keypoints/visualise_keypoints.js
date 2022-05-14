@@ -3,6 +3,12 @@ var scl = 20;
 var cols, rows;
 
 const skeleton_points = 17;
+// ONE POINT
+//var final_list_prev_x =  {0: 456.6783883};
+//var final_list_prev_y =  {0: 756.6783883};
+//var final_list_cur_x =  {0: 453.73431396484375};
+//var final_list_cur_y =  {0: 564.3138427734375};
+//var movement_distances = {0: 167.29270072563656};
 // TEST 1 PICTURE: 
 var final_list_prev_x =  {0: 441.2099609375, 1: 452.9404602050781, 2: 441.2099609375, 3: 488.1319580078125, 4: 447.0751953125, 5: 517.4581909179688, 6: 447.0751953125, 7: 593.7064208984375, 8: 429.4794616699219, 9: 664.0894165039062, 10: 388.4226989746094, 11: 511.59295654296875, 12: 464.67095947265625, 13: 482.2666931152344, 14: 388.4226989746094, 15: 499.8624572753906, 16: 318.0397033691406} ;
 var final_list_prev_y =  {0: 568.099365234375, 1: 556.368896484375, 2: 562.234130859375, 3: 562.234130859375, 4: 562.234130859375, 5: 620.8865966796875, 6: 632.6171264648438, 7: 656.078125, 8: 714.7305908203125, 9: 673.6738891601562, 10: 773.3831176757812, 11: 773.3831176757812, 12: 779.2483520507812, 13: 908.2838745117188, 14: 896.5533447265625, 15: 1037.3193359375, 16: 990.3973388671875} ;
@@ -56,79 +62,66 @@ function draw() {
   var yoff = 0;
   loadPixels();
   angleMode(RADIANS);
-  for (var y=0; y < rows; y++) {
+  drawRedSkeletonVectors();
+  for (let y=0; y < rows; y++) {
     var angle;
     var xoff = 0;
-    for (var x=0; x < cols; x++) {
-      var flag = false;
-      for(var key in skeleton_angles) {
-        if (key == String([x, y]) && flag == false) {
-          //stroke(255, 255, 0);
-          angle = skeleton_angles[key];
-          flag = true;
-        }
+    for (let x=0; x < cols; x++) {
+      let anglesAndDistances = setEachScaledPixelAngle_calculateAlltheDistancesToEachSkeletonKeyPoint(x, y);
+      let angles = anglesAndDistances.angles;
+      let distances = anglesAndDistances.distances;
+      print('angles = ', angles);
+      print('distances = ', distances);
+      
+      var angles_list = [];
+      for (let i=0; i<angles.length; i++) {
+        let dist_val_for_angles_list = calculateCoefForEachVectorsAngle(angles[i], distances[i], calculateSum(distances));
+        let movement_distances_values = Object.keys(movement_distances).map(function(key){ return movement_distances[key]; });
+        let ampl_val_for_angles_list = calculateCoefForEachVectorsAngle(angles[i], movement_distances_values[i], calculateSum(movement_distances_values));
+        
+        angles_list[i] = calculateAnglesList(dist_val_for_angles_list, ampl_val_for_angles_list, flagWithAmplitude=false); // only distance as a weight
+        angles_list[i] = calculateAnglesList(dist_val_for_angles_list, ampl_val_for_angles_list, flagWithAmplitude=true); // distance & amplitude as a weight
       }
-      if (flag == false) {
-        let distances = [];
-        let angles = [];
-        for (key in skeleton_angles) {
-          //stroke(0);
-          let key_x = parseInt(key.split(",")[0]);
-          let key_y = parseInt(key.split(",")[1]);
-          let dist = getDistance(key_x, key_y, x, y);
-          let skeleton_index = skeleton_keypoints_numbers[key];
-          //let power_value = movement_distances[skeleton_index];
-          //power_value[skeleton_index]
-          angles[skeleton_index] = skeleton_angles[key];
-          if (dist == 0) {
-            distances[skeleton_index] = 0;
-          } else {
-            distances[skeleton_index] = 1/(dist);
-          }
-          flag = true; // default
-        }
-        print('angles = ', angles);
-        print('distances = ', distances);
-        var dist_sum = distances.reduce((partialSum, a) => partialSum + a, 0);
-        var movement_distances_values = Object.keys(movement_distances).map(function(key){
-              return movement_distances[key];
-          });
-        var movement_sum = movement_distances_values.reduce((partialSum, a) => partialSum + a, 0);
-        print('dist_sum = ', dist_sum);
-        var angles_list = [];
-        for (let i=0; i<angles.length; i++) {
-          let dist_coef = 0.8;
-          let amplitude_coef = 0.2;
-          // dist handle NaN
-          let val_for_angles_list = angles[i] * (distances[i]/dist_sum);
-          if (isNaN(val_for_angles_list)) {
-            val_for_angles_list = 0;
-          }
-          // movement handle NaN
-          let ampl_val_for_angles_list = angles[i] * (movement_distances_values[i]/movement_sum);
-          if (isNaN(ampl_val_for_angles_list)) {
-            ampl_val_for_angles_list = 0;
-          }
-        // only distance as a weight
-          //angles_list[i] = val_for_angles_list;
-        // END - only distance as a weight
-          
-        // distance & amplitude as a weight
-          angles_list[i] = val_for_angles_list*dist_coef + ampl_val_for_angles_list*amplitude_coef;
-        // END - distance & amplitude as a weight
-        }
-        print('angles_list = ', angles_list);
-        angle = angles_list.reduce((partialSum, a) => partialSum + a, 0);
-        print('angle = ', angle);
-      }
+      print('angles_list = ', angles_list);
+      angle = calculateSum(angles_list);
+      print('angle = ', angle);
       xoff += inc;
-      
-      var v = p5.Vector.fromAngle(angle);
-      drawVectors(v, x, y, scl);
-      
+      let v = p5.Vector.fromAngle(angle);
+      drawVectors(v, x, y, scl, 'black');
     }
     yoff += inc;
   }
+}
+
+function setEachScaledPixelAngle_calculateAlltheDistancesToEachSkeletonKeyPoint(x, y) {
+  let angles = [];
+  let distances = [];
+  for (let key in skeleton_angles) {
+    let key_x = parseInt(key.split(",")[0]);
+    let key_y = parseInt(key.split(",")[1]);
+    let dist = getDistance(key_x, key_y, x, y);
+    let skeleton_index = skeleton_keypoints_numbers[key];
+    angles[skeleton_index] = skeleton_angles[key];
+    if (dist == 0) {
+      distances[skeleton_index] = 0;
+    } else {
+      distances[skeleton_index] = 1/(dist);
+    }
+  }
+  return {'angles': angles, 'distances': distances};
+}
+
+function calculateSum(listToSumUp) {
+  return listToSumUp.reduce((partialSum, a) => partialSum + a, 0);
+}
+
+function calculateAnglesList(dist_val_for_angles_list,  ampl_val_for_angles_list, flagWithAmplitude) {
+  if (flagWithAmplitude == false) {
+    return dist_val_for_angles_list;
+  }
+  let dist_coef = 0.99;
+  let amplitude_coef = 0.01;
+  return dist_val_for_angles_list*dist_coef + ampl_val_for_angles_list*amplitude_coef;
 }
 
 function getDistance(x1, y1, x2, y2){
@@ -137,8 +130,8 @@ function getDistance(x1, y1, x2, y2){
     return Math.sqrt(x * x + y * y);
 }
 
-function drawVectors(v, x, y, scl) {
-  stroke(0);
+function drawVectors(v, x, y, scl, myColor) {
+  stroke(myColor);
   push();
   translate(x * scl, y * scl);
   rotate(v.heading());
@@ -147,6 +140,32 @@ function drawVectors(v, x, y, scl) {
   translate(0, 0);
   triangle(0, arrowSize / 2, 0, -arrowSize / 2, arrowSize, 0);
   pop();
+}
+
+function drawRedSkeletonVectors() {
+  for (let y=0; y < rows; y++) {
+    let angle;
+    let xoff = 0;
+    for (let x=0; x < cols; x++) {
+      for(let key in skeleton_angles) {
+        if (key == String([x, y])) {
+          angle = skeleton_angles[key];
+          let v = p5.Vector.fromAngle(angle);
+          drawVectors(v, x, y, scl, 'red');
+        }
+      }
+    }
+  }
+}
+
+function calculateCoefForEachVectorsAngle(angleOfKeyPoint, invDistanceOfKeyPoint, dist_sum) {
+  // arguments: angles[i], distances[i], dist_sum
+  // dist handle NaN
+  let dist_val_for_angles_list = angleOfKeyPoint * (invDistanceOfKeyPoint/dist_sum);
+  if (isNaN(dist_val_for_angles_list)) {
+    dist_val_for_angles_list = 0;
+  }
+  return dist_val_for_angles_list;
 }
 
 function defineVectors() {
