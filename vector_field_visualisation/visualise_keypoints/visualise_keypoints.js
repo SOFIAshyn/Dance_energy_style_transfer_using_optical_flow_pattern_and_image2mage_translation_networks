@@ -59,10 +59,15 @@ function setup() {
 function draw() {
   background(255);
   
-  var yoff = 0;
+  
   loadPixels();
   angleMode(RADIANS);
   drawRedSkeletonVectors();
+  drawVectorField();
+}
+
+function drawVectorField() {
+  var yoff = 0;
   for (let y=0; y < rows; y++) {
     var angle;
     var xoff = 0;
