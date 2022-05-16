@@ -43,3 +43,13 @@ var movement_distances = {5: 167.29270072563656, 7: 153.25336140411312, 9: 58.02
 // in dictionary we store: {(col_window, row_window): angle}
 var skeleton_angles = {};
 var skeleton_keypoints_numbers = {};
+
+var head = [0,1,2,3,4];
+var left_arm = [5,7,9];
+var right_arm= [6,8,10];
+var left_leg = [11,13,15];
+var right_leg = [12,14,16];
+
+var arr_of_parts = [[0,1,2,3,4], [5,7,9], [6,8,10], [11,13,15], [12,14,16]];
+var arr_of_parts_num = {0: 'head', 1:'left_arm', 2:'right_arm', 3:'left_leg', 4:'right_leg'};
+var arr_of_parts_num_inv = {'head':0, 'left_arm': 1, 'right_arm': 2, 'left_leg': 3, 'right_leg': 4};
