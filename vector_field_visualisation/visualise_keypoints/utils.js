@@ -77,11 +77,11 @@ function setEachScaledPixelAngle_calculateOneLimbtheDistancesToEachSkeletonKeyPo
     body_sum_dict[body_key] = dist_sum;
     //print('for this ', body_key, 'we have this sum = ', dist_sum);
   }
-  print('body_sum_dict = ', body_sum_dict);
+  //print('body_sum_dict = ', body_sum_dict);
   //print('body_sum_dict = ', body_sum_dict);
   //let body_part_to_count = min(body_sum_dict, key=body_sum_dict.get);
   let body_part_to_count = Object.keys(body_sum_dict).reduce((key, v) => body_sum_dict[v] < body_sum_dict[key] ? v : key);
-  print('we are choosing: ', body_part_to_count);
+  //print('we are choosing: ', body_part_to_count);
   let dist_to_one_limb = {};
   //print('body_part_to_count = ', body_part_to_count);
   for (const [dist_key, dist_value] of distances.entries()) {
@@ -127,12 +127,13 @@ function calculateCoefForEachVectorsAngle(angleOfKeyPoint, invDistanceOfKeyPoint
   return dist_val_for_angles_list;
 }
 
-function defineVectors() {
+function defineVectors(final_list_prev_x, final_list_prev_y, final_list_cur_x, final_list_cur_y) {
   //print('we are in function: defineVectors');
   //print('skeleton_points = ', skeleton_points);
   for (let i=0; i<skeleton_points; i++) {
     print('i = ', i);
     // i - an number of skeleton point
+    //print(final_list_prev_x[0]);
     let row_prev = getVectorPixel(final_list_prev_x[i]);
     let col_prev = getVectorPixel(final_list_prev_y[i]);
     
@@ -155,7 +156,7 @@ function defineVectors() {
 function define_non_conflict_cell(row_prev, col_prev, skeleton_angles) {
   let cell = String([row_prev, col_prev]);
   print('cell = ', cell, ' in ', skeleton_angles);
-  print(cell)
+  //print(cell)
   if (cell in skeleton_angles) {
     cell = String([row_prev+1, col_prev+1]);
   }

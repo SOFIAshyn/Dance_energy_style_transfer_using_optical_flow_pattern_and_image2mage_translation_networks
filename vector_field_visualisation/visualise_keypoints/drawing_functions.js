@@ -8,16 +8,16 @@ function drawVectorField() {
       let anglesAndDistances = setEachScaledPixelAngle_calculateOneLimbtheDistancesToEachSkeletonKeyPoint(x, y);
       let angles = anglesAndDistances.angles;
       let distances = anglesAndDistances.distances;
-      print('angles = ', angles);
-      print('distances = ', distances);
+      //print('angles = ', angles);
+      //print('distances = ', distances);
       distances = Object.keys(distances).map(function(key){
           return distances[key];
       });
       angles = Object.keys(angles).map(function(key){
           return angles[key];
       });
-      print('angles = ', angles);
-      print('distances = ', distances);
+      //print('angles = ', angles);
+      //print('distances = ', distances);
       
       var angles_list = [];
       for (let i=0; i<angles.length; i++) {
@@ -29,7 +29,7 @@ function drawVectorField() {
         angles_list[i] = calculateAnglesList(angles[i], distances[i], 0, dist_val_for_angles_list, 0, flagWithAmplitude=false); // only distance as a weight
         //angles_list[i] = calculateAnglesList(angles[i], distances[i], movement_distances_values[i], dist_val_for_angles_list, ampl_val_for_angles_list, flagWithAmplitude=true); // distance & amplitude as a weight
       }
-      print('angles_list = ', angles_list);
+      //print('angles_list = ', angles_list);
       angle = calculateSum(angles_list);
       //print('angle = ', angle);
       xoff += inc;
@@ -58,6 +58,7 @@ function drawRedSkeletonVectors() {
     let xoff = 0;
     for (let x=0; x < cols; x++) {
       for(let key in skeleton_angles) {
+        print('a key from skeleton angles: ', key);
         if (key == String([x, y])) {
           angle = skeleton_angles[key];
           let v = p5.Vector.fromAngle(angle);
