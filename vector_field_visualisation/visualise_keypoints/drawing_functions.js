@@ -4,24 +4,20 @@ function drawVectorField() {
     var angle;
     var xoff = 0;
     for (let x=0; x < cols; x++) {
+      var index = x + y * cols;
       //let anglesAndDistances = setEachScaledPixelAngle_calculateAlltheDistancesToEachSkeletonKeyPoint(x, y);
       let anglesAndDistances = setEachScaledPixelAngle_calculateOneLimbtheDistancesToEachSkeletonKeyPoint(x, y);
       let angles = anglesAndDistances.angles;
       let distances = anglesAndDistances.distances;
-      //print('angles = ', angles);
-      //print('distances = ', distances);
       distances = Object.keys(distances).map(function(key){
           return distances[key];
       });
       angles = Object.keys(angles).map(function(key){
           return angles[key];
       });
-      //print('angles = ', angles);
-      //print('distances = ', distances);
       
       var angles_list = [];
       for (let i=0; i<angles.length; i++) {
-        //print("NEW distances = ", distances);
         let dist_val_for_angles_list = calculateCoefForEachVectorsAngle(angles[i], distances[i], calculateSum(distances));
         //let movement_distances_values = Object.keys(movement_distances).map(function(key){ return movement_distances[key]; });
         //let ampl_val_for_angles_list = calculateCoefForEachVectorsAngle(angles[i], movement_distances_values[i], calculateSum(movement_distances_values));
@@ -29,15 +25,22 @@ function drawVectorField() {
         angles_list[i] = calculateAnglesList(angles[i], distances[i], 0, dist_val_for_angles_list, 0, flagWithAmplitude=false); // only distance as a weight
         //angles_list[i] = calculateAnglesList(angles[i], distances[i], movement_distances_values[i], dist_val_for_angles_list, ampl_val_for_angles_list, flagWithAmplitude=true); // distance & amplitude as a weight
       }
-      //print('angles_list = ', angles_list);
-      angle = calculateSum(angles_list);
-      //print('angle = ', angle);
+      // this sum of angles is already weighted by the distances 
+      angle = calculateSum(angles_list) * noise(xoff, yoff, zoff);
+      var v = p5.Vector.fromAngle(angle);
+      //drawVectors(v, x, y, scl, 'black');
+      drawPariclesMovingOnTopOfFlowField(v, index);
       xoff += inc;
-      let v = p5.Vector.fromAngle(angle);
-      drawVectors(v, x, y, scl, 'black');
     }
     yoff += inc;
+    zoff += 0.5;
   }
+}
+
+function drawPariclesMovingOnTopOfFlowField(v, index) {
+  v.setMag(1);
+  stroke('black');
+  flowfield[index] = v;
 }
 
 function drawVectors(v, x, y, scl, myColor) {
@@ -55,10 +58,9 @@ function drawVectors(v, x, y, scl, myColor) {
 function drawRedSkeletonVectors() {
   for (let y=0; y < rows; y++) {
     let angle;
-    let xoff = 0;
     for (let x=0; x < cols; x++) {
       for(let key in skeleton_angles) {
-        print('a key from skeleton angles: ', key);
+        //print('a key from skeleton angles: ', key);
         if (key == String([x, y])) {
           angle = skeleton_angles[key];
           let v = p5.Vector.fromAngle(angle);

@@ -6,6 +6,7 @@
 function Particle() {
   this.pos = createVector(random(width), random(height));
   this.vel = createVector(0, 0);
+  //this.vel = p5.Vector.sndom2D(0, 0);
   this.acc = createVector(0, 0);
   this.maxspeed = 4;
   this.h = 0;

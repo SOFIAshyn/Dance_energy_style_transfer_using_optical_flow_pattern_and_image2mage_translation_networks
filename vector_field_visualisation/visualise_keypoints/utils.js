@@ -1,7 +1,6 @@
 function setSkeletonArrays() {
   for (let y=0; y<rows; y++) {
     let angle;
-    let xoff = 0;
     for (let x=0; x < cols; x++) {
       for(let key in skeleton_angles) {
         if (key == String([x, y])) {
@@ -11,10 +10,6 @@ function setSkeletonArrays() {
     }
   }
 }
-
-//function dict_parse(string_to_dict) {
-  
-//}
 
 function setEachScaledPixelAngle_calculateAlltheDistancesToEachSkeletonKeyPoint(x, y) {
   let angles = [];
