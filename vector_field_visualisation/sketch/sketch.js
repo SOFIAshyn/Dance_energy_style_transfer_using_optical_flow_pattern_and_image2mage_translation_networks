@@ -2,6 +2,7 @@
 // NEXT STEPS: play with magnitude, with color
 
 // variables for each video 
+var frame_i = 0;
 var index_of_video_in_list = 0;
 var canvasHeight = 1920;
 var canvasWidth = 1080;
