@@ -6,12 +6,25 @@ var particles = [];
 var flowfield;
 var scl = 10;
 
+var list_of_one_person_dancing_videos = ['1hdHc1hJAWU_005_', '2OcaeW67VIc_030_', '3xjpYjLO1aM_030_', '9ZNFPk60yjE_232_', 'B-DUOlHKKVU_005_', 'BVM8AP3luyI_015_', 'cIFB-GmLGyQ_210_', 'Fo250jmBl6I_005_', 'HwvyKmpTEkg_120_', 'm4A6PLeGIB4_005_', 'nM-rm68GyRk_020_', 'o1eV2Mgc_BI_018_', 'pBAY_XH3sgw_010_', 'S5HwZJQ8NuA_011_', 'SmRrfm1ihGg_008_', 'Wz_f9B4pPtg_020_', 'XAsMB3eRe6g_007_', 'Xj1_aETg6Ww_640_', 'XwmwsGT8IQ4_510_', 'zWBVa2m_4Fs_050_'];
+
 var cols, rows;
 var skeleton_angles = {};
 var skeleton_keypoints_numbers = {};
 
 const skeleton_points = 17;
-// BASE SETUP
+
+var head = [0,1,2,3,4];
+var left_arm = [5,7,9];
+var right_arm= [6,8,10];
+var left_leg = [11,13,15];
+var right_leg = [12,14,16];
+
+var arr_of_parts = [[0,1,2,3,4], [5,7,9], [6,8,10], [11,13,15], [12,14,16]];
+var arr_of_parts_num = {0: 'head', 1:'left_arm', 2:'right_arm', 3:'left_leg', 4:'right_leg'};
+var arr_of_parts_num_inv = {'head':0, 'left_arm': 1, 'right_arm': 2, 'left_leg': 3, 'right_leg': 4};
+
+// TEST VARIABLES:
 // ONE POINT
 //var final_list_prev_x =  {0: 456.6783883};
 //var final_list_prev_y =  {0: 756.6783883};
@@ -48,13 +61,3 @@ const skeleton_points = 17;
 //var final_list_cur_x =  {0: 908.6870727539062, 1: 921.2073364257812, 2: 896.1668090820312, 3: 939.98779296875, 4: 877.3864135742188, 5: 965.0283203125, 6: 858.6060180664062, 7: 996.328857421875, 8: 827.3053588867188, 9: 1002.589111328125, 10: 864.8661499023438, 11: 946.247802734375, 12: 883.6465454101562, 13: 902.4269409179688, 14: 914.9472045898438, 15: 877.3864135742188, 16: 939.98779296875} ;
 //var final_list_cur_y =  {0: 295.52239990234375, 1: 289.26226806640625, 2: 289.26226806640625, 3: 301.78253173828125, 4: 308.04266357421875, 5: 401.94464111328125, 6: 395.68450927734375, 7: 495.84661865234375, 8: 508.36688232421875, 9: 589.7485961914062, 10: 596.0087280273438, 11: 583.4884643554688, 12: 577.2283325195312, 13: 733.7316284179688, 14: 733.7316284179688, 15: 877.7146606445312, 16: 883.9747924804688} ;
 //var movement_distances =  {5: 100.0, 7: 100.0, 9: 100.0, 6: 100.0, 8: 100.0, 10: 100.0, 11: 100.0, 13: 100.0, 15: 100.0, 12: 100.0, 14: 100.0, 16: 100.0, 3: 100.0, 1: 100.0, 0: 100.0, 2: 100.0, 4: 100.0} ;
-
-var head = [0,1,2,3,4];
-var left_arm = [5,7,9];
-var right_arm= [6,8,10];
-var left_leg = [11,13,15];
-var right_leg = [12,14,16];
-
-var arr_of_parts = [[0,1,2,3,4], [5,7,9], [6,8,10], [11,13,15], [12,14,16]];
-var arr_of_parts_num = {0: 'head', 1:'left_arm', 2:'right_arm', 3:'left_leg', 4:'right_leg'};
-var arr_of_parts_num_inv = {'head':0, 'left_arm': 1, 'right_arm': 2, 'left_leg': 3, 'right_leg': 4};
