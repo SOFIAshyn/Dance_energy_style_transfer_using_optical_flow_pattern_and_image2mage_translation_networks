@@ -108,6 +108,7 @@ class Encoder(nn.Module):
         # Output is mu and log(var) for reparameterization trick used in VAEs
         # self.fc_mu = nn.Linear(256, latent_dim) xxx
         # self.fc_logvar = nn.Linear(256, latent_dim) xxx
+        _, w, h = input_shape
         self.fc_mu = nn.Linear(1024, latent_dim)
         self.fc_logvar = nn.Linear(1024, latent_dim)
 

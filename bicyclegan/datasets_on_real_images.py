@@ -1,5 +1,8 @@
 import glob
+import random
 import os
+import numpy as np
+import torch
 from torch.utils.data import Dataset
 from PIL import Image
 import torchvision.transforms as transforms
@@ -20,22 +23,17 @@ class ImageDataset(Dataset):
                                                  sorted(glob.glob(os.path.join(os.path.join(root, mode), abstract) +
                                                                   "/*"))]
         self.abstract_files = self._get_list_of_images(root, mode, abstract)
+        self.set_of_images = set([el.split('/')[-1] for el in self.abstract_files])
         self.orig_files = self._get_list_of_images(root, mode, orig)
         self.bbox_dict = self._get_json_of_sorted_bbox_img_details(root, mode, bbox)
-        f = open(os.path.join(os.path.join(root, mode), 'image_sizes.json'), 'r')
-        self.width_height_dict = json.load(f)
-        f.close()
         self.model_input_size = input_size
 
     def _get_list_of_images(self, root, mode, img_type):
         list_of_all_names = []
-
         if img_type == self.orig:
-            set_of_images = set([el.split('/')[-1] for el in self.abstract_files])
-            for v in set_of_images:
-                list_of_all_names.append(
-                    os.path.join(os.path.join(os.path.join(os.path.join(root, mode), img_type), v[:-8]),
-                                 v[:-3] + 'png'))
+            for v in self.set_of_images:
+                list_of_all_names.append(os.path.join(os.path.join(os.path.join(os.path.join(root, mode), img_type),
+                                                                   v[:-8]), v))
             list_of_all_names = sorted(list_of_all_names)
         else:
             for v in self.only_generated_video_directories:
@@ -70,31 +68,69 @@ class ImageDataset(Dataset):
     def __getitem__(self, index):
         indx_of_frame = index % len(self.abstract_files)
         img_abst = Image.open(self.abstract_files[indx_of_frame])
-        img_skeleton = Image.open(self.orig_files[indx_of_frame]).convert('RGB')
-        frame_name = self.orig_files[indx_of_frame].split('/')[-1][:-3] + 'jpg'
+        img_orig = Image.open(self.orig_files[indx_of_frame])
+        frame_name = self.orig_files[indx_of_frame].split('/')[-1]
         img_bbox = self.bbox_dict.get(frame_name, None)
-        w, h = self.width_height_dict[frame_name[:-8]]
-        img_skeleton = self.transform(img_skeleton)
+        w, h = img_orig.size
+        img_orig = self.transform(img_orig)
         img_abst = self.transform(img_abst)
-        img_skeleton = F.resize(img_skeleton, [h, w])
         img_abst = F.resize(img_abst, [h, w])
         rad = int(h / 2)
         bbox_center_coord = ((img_bbox[0] + img_bbox[0] + img_bbox[2]) / 2,
                              (img_bbox[1] + img_bbox[1] + img_bbox[3]) / 2)
         bbox_x, bbox_y = bbox_center_coord[0], bbox_center_coord[1]
         x_pos = self._get_x_y_for_square(rad, bbox_x)
-        # prepare for the model - !!!
-        img_skeleton_cropped = F.resized_crop(img_skeleton, top=0, left=x_pos,
-                                              height=h, width=h,
-                                              size=[self.model_input_size, self.model_input_size],
-                                              interpolation=transforms.InterpolationMode.BICUBIC
-                                              )
+        # prepare for the model
+        img_orig_cropped = F.resized_crop(img_orig, top=0, left=x_pos,
+                                  height=h, width=h,
+                                  size=[self.model_input_size, self.model_input_size],
+                                  interpolation=transforms.InterpolationMode.BICUBIC
+                                  )
         img_abst_cropped = F.resized_crop(img_abst, top=0, left=x_pos,
-                                          height=h, width=h,
-                                          size=[self.model_input_size, self.model_input_size],
-                                          interpolation=transforms.InterpolationMode.BICUBIC
-                                          )
-        return {'img_skeleton': img_skeleton_cropped, 'img_abst': img_abst_cropped}
+                                  height=h, width=h,
+                                  size=[self.model_input_size, self.model_input_size],
+                                  interpolation=transforms.InterpolationMode.BICUBIC
+                                  )
+
+        # if np.random.random() < 0.5:
+        #     img_orig_cropped = Image.fromarray(np.array(img_orig_cropped)[:, ::-1, :], "RGB")
+        #     img_abst_cropped = Image.fromarray(np.array(img_abst_cropped)[:, ::-1, :], "RGB")
+
+        # img_orig_cropped = self.transform(img_orig_cropped)
+        # img_abst_cropped = self.transform(img_abst_cropped)
+
+        return {'img_orig': img_orig_cropped, 'img_abst': img_abst_cropped}
 
     def __len__(self):
         return len(self.abstract_files)
+
+# class ImageDataset(Dataset):
+#     def __init__(self, root, input_shape, mode="train"):
+#         self.transform = transforms.Compose(
+#             [
+#                 transforms.Resize(input_shape[-2:], Image.BICUBIC),
+#                 transforms.ToTensor(),
+#                 transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+#             ]
+#         )
+#
+#         self.files = sorted(glob.glob(os.path.join(root, mode) + "/*.*"))
+#
+#     def __getitem__(self, index):
+#
+#         img = Image.open(self.files[index % len(self.files)])
+#         w, h = img.size
+#         img_A = img.crop((0, 0, w / 2, h))
+#         img_B = img.crop((w / 2, 0, w, h))
+#
+#         if np.random.random() < 0.5:
+#             img_A = Image.fromarray(np.array(img_A)[:, ::-1, :], "RGB")
+#             img_B = Image.fromarray(np.array(img_B)[:, ::-1, :], "RGB")
+#
+#         img_A = self.transform(img_A)
+#         img_B = self.transform(img_B)
+#
+#         return {"A": img_A, "B": img_B}
+#
+#     def __len__(self):
+#         return len(self.files)

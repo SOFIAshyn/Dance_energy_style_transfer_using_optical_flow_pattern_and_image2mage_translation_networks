@@ -90,7 +90,7 @@ dataloader = DataLoader(
     ImageDataset(
         # root_local,
         root='/home/sofiiapetryshyn/dance-gan/PyTorch-GAN/data/dance2energy/',
-        orig='gan_frames',
+        orig='gan_skeletons',
         abstract='gan_abstractions',
         bbox='videos_bbox_json_data',
         input_size=input_shape[1],
@@ -104,7 +104,7 @@ val_dataloader = DataLoader(
     ImageDataset(
         # root_local,
         root='/home/sofiiapetryshyn/dance-gan/PyTorch-GAN/data/dance2energy/',
-        orig='gan_frames',
+        orig='gan_skeletons',
         abstract='gan_abstractions',
         bbox='videos_bbox_json_data',
         input_size=input_shape[1],
@@ -121,7 +121,7 @@ def sample_images(batches_done):
     generator.eval()
     imgs = next(iter(val_dataloader))
     img_samples = None
-    for img_A, img_B in zip(imgs["img_orig"], imgs["img_abst"]):
+    for img_A, img_B in zip(imgs["img_skeleton"], imgs["img_abst"]):
         # Repeat input image by number of desired columns
         real_A = img_A.view(1, *img_A.shape).repeat(opt.latent_dim, 1, 1, 1)
         real_A = Variable(real_A.type(Tensor))
@@ -159,7 +159,7 @@ for epoch in range(opt.epoch, opt.n_epochs):
     for i, batch in enumerate(dataloader):
 
         # Set model input
-        real_A = Variable(batch["img_orig"].type(Tensor))
+        real_A = Variable(batch["img_skeleton"].type(Tensor))
         real_B = Variable(batch["img_abst"].type(Tensor))
 
         # -------------------------------
