@@ -24,14 +24,14 @@ import torch
 parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", type=int, default=0, help="epoch to start training from")
 parser.add_argument("--n_epochs", type=int, default=200, help="number of epochs of training")
-parser.add_argument("--dataset_name", type=str, default="edges2shoes", help="name of the dataset")
+parser.add_argument("--dataset_name", type=str, default="dance2energy", help="name of the dataset")
 parser.add_argument("--batch_size", type=int, default=8, help="size of the batches")
 parser.add_argument("--lr", type=float, default=0.0002, help="adam: learning rate")
 parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
 parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
-parser.add_argument("--img_height", type=int, default=128, help="size of image height")
-parser.add_argument("--img_width", type=int, default=128, help="size of image width")
+parser.add_argument("--img_height", type=int, default=256, help="size of image height")
+parser.add_argument("--img_width", type=int, default=256, help="size of image width")
 parser.add_argument("--channels", type=int, default=3, help="number of image channels")
 parser.add_argument("--latent_dim", type=int, default=8, help="number of latent codes")
 parser.add_argument("--sample_interval", type=int, default=400, help="interval between saving generator samples")
@@ -42,8 +42,8 @@ parser.add_argument("--lambda_kl", type=float, default=0.01, help="kullback-leib
 opt = parser.parse_args()
 print(opt)
 
-os.makedirs("images/%s" % opt.dataset_name, exist_ok=True)
-os.makedirs("saved_models/%s" % opt.dataset_name, exist_ok=True)
+os.makedirs(f"images/{opt.dataset_name}", exist_ok=True)
+os.makedirs(f"saved_models/{opt.dataset_name}", exist_ok=True)
 
 cuda = True if torch.cuda.is_available() else False
 # cuda = False
@@ -85,26 +85,43 @@ optimizer_D_LR = torch.optim.Adam(D_LR.parameters(), lr=opt.lr, betas=(opt.b1, o
 
 Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
 
+root_local = '/Users/sofiia.petryshyn/Desktop/avenga/PyTorch-GAN/data/dance2energy'
 dataloader = DataLoader(
-    ImageDataset(f"../../data/{opt.dataset_name}", input_shape),
+    ImageDataset(
+        # root_local,
+        root='/home/sofiiapetryshyn/dance-gan/PyTorch-GAN/data/dance2energy/',
+        orig='gan_frames',
+        abstract='gan_abstractions',
+        bbox='videos_bbox_json_data',
+        input_size=input_shape[1],
+        mode='train'
+    ),
     batch_size=opt.batch_size,
     shuffle=True,
     num_workers=opt.n_cpu,
 )
 val_dataloader = DataLoader(
-    ImageDataset(f"../../data/{opt.dataset_name}", input_shape, mode="val"),
+    ImageDataset(
+        # root_local,
+        root='/home/sofiiapetryshyn/dance-gan/PyTorch-GAN/data/dance2energy/',
+        orig='gan_frames',
+        abstract='gan_abstractions',
+        bbox='videos_bbox_json_data',
+        input_size=input_shape[1],
+        mode='val'
+    ),
     batch_size=8,
     shuffle=True,
-    num_workers=1,
+    num_workers=1
 )
 
 
 def sample_images(batches_done):
-    """Saves a generated sample from the validation set"""
+    """Saves 1hdHc1hJAWU_005_ generated sample from the validation set"""
     generator.eval()
     imgs = next(iter(val_dataloader))
     img_samples = None
-    for img_A, img_B in zip(imgs["A"], imgs["B"]):
+    for img_A, img_B in zip(imgs["img_orig"], imgs["img_abst"]):
         # Repeat input image by number of desired columns
         real_A = img_A.view(1, *img_A.shape).repeat(opt.latent_dim, 1, 1, 1)
         real_A = Variable(real_A.type(Tensor))
@@ -118,7 +135,7 @@ def sample_images(batches_done):
         img_sample = img_sample.view(1, *img_sample.shape)
         # Concatenate with previous samples vertically
         img_samples = img_sample if img_samples is None else torch.cat((img_samples, img_sample), -2)
-    save_image(img_samples, "images/%s/%s.png" % (opt.dataset_name, batches_done), nrow=8, normalize=True)
+    save_image(img_samples, f"images/{opt.dataset_name}/{batches_done}.png", nrow=8, normalize=True)
     generator.train()
 
 
@@ -142,8 +159,8 @@ for epoch in range(opt.epoch, opt.n_epochs):
     for i, batch in enumerate(dataloader):
 
         # Set model input
-        real_A = Variable(batch["A"].type(Tensor))
-        real_B = Variable(batch["B"].type(Tensor))
+        real_A = Variable(batch["img_orig"].type(Tensor))
+        real_B = Variable(batch["img_abst"].type(Tensor))
 
         # -------------------------------
         #  Train Generator and Encoder
